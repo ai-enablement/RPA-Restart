@@ -11,7 +11,9 @@ function createPool() {
     database: process.env.PGDATABASE || "rpa_db",
     user: process.env.PGUSER || undefined,
     password: process.env.PGPASSWORD || undefined,
-    ssl: sslMode === "require" ? { rejectUnauthorized: false } : undefined,
+    // node-postgres treats PGSSLMODE=prefer as an SSL request without libpq-style
+    // fallback. This on-premises server is non-SSL, so only opt in explicitly.
+    ssl: sslMode === "require" ? { rejectUnauthorized: false } : false,
     max: 10,
     idleTimeoutMillis: 30_000,
   });

@@ -35,8 +35,7 @@ export async function requestRun(email: string, taskId: string) {
          JOIN user_rpa_access a ON a.user_id = u.id
          JOIN rpa_task r ON r.id = a.rpa_task_id
         WHERE lower(u.email) = lower($1) AND r.id = $2
-          AND u.is_active = true AND r.status = 'active'
-        FOR UPDATE OF r`,
+          AND u.is_active = true AND r.status = 'active'`,
       [email, taskId],
     );
     if (!allowed.rowCount) throw new Error("FORBIDDEN");

@@ -10,6 +10,7 @@
 4. `npm install`, `npm run dev`를 실행합니다.
 
 로컬 로그인 사용자는 `DEV_USER_EMAIL`로 지정합니다. 운영 환경에서는 이 값이 사용되지 않습니다.
+현재 온프레미스 PostgreSQL처럼 SSL을 지원하지 않는 서버는 `PGSSLMODE=disable`을 사용합니다.
 
 ## Azure 배포 구성
 
