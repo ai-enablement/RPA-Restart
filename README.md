@@ -5,12 +5,21 @@
 ## 로컬 실행
 
 1. `.env`에 PostgreSQL 연결 정보를 입력합니다.
-2. `db/schema.sql`을 `rpa_db`에 적용합니다.
+2. `db/schema.sql`을 `rpa_db`에 적용해 `rpa_restart` 스키마와 테이블을 생성합니다.
 3. 초기 화면만 확인하려면 `USE_DEMO_DATA=true`를 유지합니다. 실제 DB를 확인할 때는 `false`로 변경합니다.
 4. `npm install`, `npm run dev`를 실행합니다.
 
 로컬 로그인 사용자는 `DEV_USER_EMAIL`로 지정합니다. 운영 환경에서는 이 값이 사용되지 않습니다.
 현재 온프레미스 PostgreSQL처럼 SSL을 지원하지 않는 서버는 `PGSSLMODE=disable`을 사용합니다.
+
+애플리케이션 계정에는 최소한 다음 권한이 필요합니다.
+
+```sql
+GRANT USAGE ON SCHEMA rpa_restart TO "<앱 계정>";
+GRANT SELECT ON rpa_restart.app_user, rpa_restart.rpa_task,
+  rpa_restart.user_rpa_access TO "<앱 계정>";
+GRANT SELECT, INSERT, UPDATE ON rpa_restart.flow_run TO "<앱 계정>";
+```
 
 ## Azure 배포 구성
 
