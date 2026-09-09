@@ -23,9 +23,9 @@ export function RunButton({ taskId, disabled }: { taskId: string; disabled?: boo
   }
 
   return (
-    <><button className="run-button" onClick={run} disabled={disabled || state === "loading"} title={message}>
+    <div className="run-control"><button className="run-button" onClick={run} disabled={disabled || state === "loading"} title={message}>
       {state === "loading" ? <ArrowPathIcon className="spin" /> : <PlayIcon />}
       {state === "loading" ? "요청 중" : state === "done" ? "실행 요청됨" : state === "error" ? "다시 시도" : "실행"}
-    </button>{message && <span className="run-error">{message}</span>}</>
+    </button>{message && <span className="run-error">{message}</span>}</div>
   );
 }

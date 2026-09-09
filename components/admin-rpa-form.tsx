@@ -2,6 +2,7 @@
 
 import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { FormEvent, useState } from "react";
+import { createPortal } from "react-dom";
 import type { RpaTask } from "@/lib/types";
 
 export function AdminRpaForm({ task, buttonLabel }: { task?: RpaTask; buttonLabel?: string }) {
@@ -34,8 +35,9 @@ export function AdminRpaForm({ task, buttonLabel }: { task?: RpaTask; buttonLabe
 
   if (!open) return <button className={task ? "admin-edit-button" : "admin-add-button"} onClick={() => setOpen(true)}>{!task && <PlusIcon />}{buttonLabel ?? (task ? "수정" : "새 RPA 등록")}</button>;
 
-  return (
-    <div className="admin-form-wrap">
+  return createPortal(
+    <div className="admin-modal-backdrop" role="presentation" onMouseDown={() => setOpen(false)}>
+    <div className="admin-form-wrap" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>
       <div className="admin-form-heading"><div><strong>{task ? "RPA 수정" : "새 RPA 등록"}</strong><span>Flow URL과 사용자를 함께 관리합니다.</span></div><button aria-label="닫기" onClick={() => setOpen(false)}><XMarkIcon /></button></div>
       <form className="admin-form" onSubmit={submit}>
         <label>RPA 이름<input name="name" maxLength={120} required defaultValue={task?.name} /></label>
@@ -46,6 +48,6 @@ export function AdminRpaForm({ task, buttonLabel }: { task?: RpaTask; buttonLabe
         {message && <p className="form-error">{message}</p>}
         <button className="save-button" disabled={saving}>{saving ? "저장 중" : task ? "저장" : "등록"}</button>
       </form>
-    </div>
+    </div></div>, document.body,
   );
 }
