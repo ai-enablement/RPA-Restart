@@ -8,7 +8,7 @@ const triggerLabels = { restart: "재시작", schedule: "예약" } as const;
 
 function formatDate(value: string | null) {
   if (!value) return "-";
-  return new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date(value));
+  return new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date(value));
 }
 
 export default async function HistoryPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; triggerType?: string }> }) {

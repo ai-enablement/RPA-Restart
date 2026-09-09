@@ -6,7 +6,7 @@ import { AdminRpaForm } from "@/components/admin-rpa-form";
 
 function formatDate(value: string | null) {
   if (!value) return "실행 기록 없음";
-  return new Intl.DateTimeFormat("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+  return new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 }
 
 export default async function Home() {
