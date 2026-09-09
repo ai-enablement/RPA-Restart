@@ -16,3 +16,14 @@ export type AppUser = {
   displayName: string | null;
   role: "user" | "admin";
 };
+
+export type FlowRunHistory = {
+  id: string;
+  taskName: string;
+  requestedByEmail: string;
+  status: "queued" | "running" | "succeeded" | "failed";
+  triggerType: "restart" | "schedule";
+  requestedAt: string;
+  completedAt: string | null;
+  detail: string | null;
+};

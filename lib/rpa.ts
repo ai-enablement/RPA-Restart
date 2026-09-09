@@ -1,6 +1,6 @@
 import { demoTasks } from "./demo-data";
 import { getPool } from "./db";
-import type { AppUser, RpaTask } from "./types";
+import type { AppUser, FlowRunHistory, RpaTask } from "./types";
 
 export async function getAppUser(email: string): Promise<AppUser | null> {
   if (process.env.USE_DEMO_DATA === "true") {
@@ -166,8 +166,8 @@ export async function requestRun(email: string, taskId: string) {
     if (!allowed.rowCount) throw new Error("FORBIDDEN");
 
     const run = await client.query<{ id: string }>(
-      `INSERT INTO rpa_restart.flow_run (rpa_task_id, requested_by, status)
-       VALUES ($1, $2, 'queued') RETURNING id`,
+      `INSERT INTO rpa_restart.flow_run (rpa_task_id, requested_by, status, trigger_type)
+       VALUES ($1, $2, 'queued', 'restart') RETURNING id`,
       [taskId, allowed.rows[0].user_id],
     );
     await client.query("COMMIT");
@@ -215,4 +215,31 @@ export async function requestRun(email: string, taskId: string) {
   } finally {
     client.release();
   }
+}
+
+export async function getRunHistory(
+  user: AppUser,
+  filters: { search?: string; status?: string; triggerType?: string },
+): Promise<FlowRunHistory[]> {
+  if (process.env.USE_DEMO_DATA === "true") return [];
+  const values: string[] = [];
+  const conditions: string[] = [];
+  if (user.role !== "admin") { values.push(user.id); conditions.push(`fr.requested_by = $${values.length}`); }
+  if (filters.status && ["queued", "running", "succeeded", "failed"].includes(filters.status)) { values.push(filters.status); conditions.push(`fr.status = $${values.length}`); }
+  if (filters.triggerType && ["restart", "schedule"].includes(filters.triggerType)) { values.push(filters.triggerType); conditions.push(`fr.trigger_type = $${values.length}`); }
+  if (filters.search?.trim()) {
+    values.push(`%${filters.search.trim()}%`);
+    conditions.push(`(r.name ILIKE $${values.length} OR u.email ILIKE $${values.length} OR COALESCE(fr.detail, '') ILIKE $${values.length})`);
+  }
+  const result = await getPool().query<FlowRunHistory>(
+    `SELECT fr.id, r.name AS "taskName", u.email AS "requestedByEmail", fr.status,
+            fr.trigger_type AS "triggerType", fr.requested_at::text AS "requestedAt",
+            fr.completed_at::text AS "completedAt", fr.detail
+       FROM rpa_restart.flow_run fr
+       JOIN rpa_restart.rpa_task r ON r.id = fr.rpa_task_id
+       JOIN rpa_restart.app_user u ON u.id = fr.requested_by
+      ${conditions.length ? `WHERE ${conditions.join(" AND ")}` : ""}
+      ORDER BY fr.requested_at DESC LIMIT 200`, values,
+  );
+  return result.rows;
 }

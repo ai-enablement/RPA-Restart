@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS rpa_restart.flow_run (
   rpa_task_id uuid NOT NULL REFERENCES rpa_restart.rpa_task(id),
   requested_by uuid NOT NULL REFERENCES rpa_restart.app_user(id),
   status text NOT NULL DEFAULT 'queued' CHECK (status IN ('queued', 'running', 'succeeded', 'failed')),
+  trigger_type text NOT NULL DEFAULT 'restart' CHECK (trigger_type IN ('restart', 'schedule')),
   requested_at timestamptz NOT NULL DEFAULT now(),
   completed_at timestamptz,
   detail text

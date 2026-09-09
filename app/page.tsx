@@ -21,7 +21,7 @@ export default async function Home() {
         <div className="brand"><span className="brand-mark"><BoltIcon /></span><span>RPA<br />Restart</span></div>
         <nav aria-label="주 메뉴">
           <a className="nav-item active" href="#tasks"><Squares2X2Icon />나의 자동화</a>
-          <a className="nav-item" href="#history"><ClockIcon />실행 이력</a>
+          <a className="nav-item" href="/history"><ClockIcon />실행 이력</a>
         </nav>
         <div className="security-note"><ShieldCheckIcon /><div><strong>권한 기반 접근</strong><p>할당된 자동화만 표시됩니다.</p></div></div>
       </aside>
