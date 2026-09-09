@@ -19,6 +19,15 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
     if (message === "FORBIDDEN") {
       return NextResponse.json({ message: "이 과제를 실행할 권한이 없습니다." }, { status: 403 });
     }
-    return NextResponse.json({ message: "실행 요청을 접수하지 못했습니다." }, { status: 502 });
+    if (message === "FLOW_URL_MISSING") {
+      return NextResponse.json({ message: "Power Automate Flow URL이 등록되지 않았습니다." }, { status: 400 });
+    }
+    if (message.startsWith("FLOW_HTTP_401") || message.startsWith("FLOW_HTTP_403")) {
+      return NextResponse.json({ message: "Power Automate가 호출을 거부했습니다. HTTP 트리거 인증 설정을 확인해 주세요." }, { status: 502 });
+    }
+    if (message.includes("TimeoutError") || message.includes("aborted")) {
+      return NextResponse.json({ message: "Power Automate 응답 시간이 초과되었습니다." }, { status: 504 });
+    }
+    return NextResponse.json({ message: "Power Automate 호출에 실패했습니다." }, { status: 502 });
   }
 }

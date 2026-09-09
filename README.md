@@ -20,6 +20,13 @@ GRANT SELECT, INSERT, UPDATE ON rpa_restart.app_user TO "<앱 계정>";
 GRANT SELECT, INSERT ON rpa_restart.user_rpa_access TO "<앱 계정>";
 GRANT SELECT, INSERT ON rpa_restart.rpa_task TO "<앱 계정>";
 GRANT SELECT, INSERT, UPDATE ON rpa_restart.flow_run TO "<앱 계정>";
+
+RPA 수정 기능을 사용할 때는 다음 권한도 필요합니다.
+
+```sql
+GRANT UPDATE ON rpa_restart.rpa_task TO "<앱 계정>";
+GRANT DELETE ON rpa_restart.user_rpa_access TO "<앱 계정>";
+```
 ```
 
 기존 DB에 관리자 기능을 추가할 때는 관리자 계정으로
