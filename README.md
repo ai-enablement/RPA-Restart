@@ -16,7 +16,8 @@
 
 ```sql
 GRANT USAGE ON SCHEMA rpa_restart TO "<앱 계정>";
-GRANT SELECT ON rpa_restart.app_user, rpa_restart.user_rpa_access TO "<앱 계정>";
+GRANT SELECT, INSERT, UPDATE ON rpa_restart.app_user TO "<앱 계정>";
+GRANT SELECT, INSERT ON rpa_restart.user_rpa_access TO "<앱 계정>";
 GRANT SELECT, INSERT ON rpa_restart.rpa_task TO "<앱 계정>";
 GRANT SELECT, INSERT, UPDATE ON rpa_restart.flow_run TO "<앱 계정>";
 ```

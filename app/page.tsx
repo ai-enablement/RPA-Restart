@@ -54,7 +54,7 @@ export default async function Home() {
                 <article className="task-card" key={task.id}>
                   <div className="card-top"><span className="task-number">{String(index + 1).padStart(2, "0")}</span><span className={`status ${task.status}`}>{task.status === "active" ? "실행 가능" : task.status === "maintenance" ? "점검 중" : "중지"}</span></div>
                   <div className="category">{task.category}</div><h3>{task.name}</h3><p>{task.description}</p>
-                  <div className="card-footer"><span><ClockIcon />{formatDate(task.lastRunAt)}</span><RunButton taskId={task.id} disabled={task.status !== "active"} /></div>
+                  <div className="card-footer"><span><ClockIcon />{user?.role === "admin" ? `${task.assignedUserCount ?? 0}명 사용 · ` : ""}{formatDate(task.lastRunAt)}</span><RunButton taskId={task.id} disabled={task.status !== "active"} /></div>
                 </article>
               ))}
             </div>

@@ -22,9 +22,11 @@ export async function getTasksForUser(user: AppUser): Promise<RpaTask[]> {
   const result = user.role === "admin"
     ? await getPool().query<RpaTask>(
         `SELECT r.id, r.name, r.description, r.category, r.status,
-                MAX(fr.requested_at)::text AS "lastRunAt"
+                MAX(fr.requested_at)::text AS "lastRunAt",
+                COUNT(DISTINCT a.user_id)::int AS "assignedUserCount"
            FROM rpa_restart.rpa_task r
       LEFT JOIN rpa_restart.flow_run fr ON fr.rpa_task_id = r.id
+      LEFT JOIN rpa_restart.user_rpa_access a ON a.rpa_task_id = r.id
        GROUP BY r.id, r.name, r.description, r.category, r.status
        ORDER BY r.name`,
       )
@@ -45,18 +47,48 @@ export async function getTasksForUser(user: AppUser): Promise<RpaTask[]> {
 
 export async function createRpaTask(
   user: AppUser,
-  input: { name: string; description: string; category: string; webhookUrl: string | null },
+  input: {
+    name: string;
+    description: string;
+    category: string;
+    webhookUrl: string | null;
+    userEmails: string[];
+  },
 ) {
   if (user.role !== "admin") throw new Error("FORBIDDEN");
 
-  const result = await getPool().query<{ id: string }>(
-    `INSERT INTO rpa_restart.rpa_task
-       (name, description, category, flow_webhook_url)
-     VALUES ($1, $2, $3, $4)
-     RETURNING id`,
-    [input.name, input.description, input.category, input.webhookUrl],
-  );
-  return result.rows[0];
+  const client = await getPool().connect();
+  try {
+    await client.query("BEGIN");
+    const result = await client.query<{ id: string }>(
+      `INSERT INTO rpa_restart.rpa_task
+         (name, description, category, flow_webhook_url)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id`,
+      [input.name, input.description, input.category, input.webhookUrl],
+    );
+    const taskId = result.rows[0].id;
+
+    await client.query(
+      `INSERT INTO rpa_restart.app_user (email)
+       SELECT unnest($1::text[])
+       ON CONFLICT (email) DO UPDATE SET is_active = true`,
+      [input.userEmails],
+    );
+    await client.query(
+      `INSERT INTO rpa_restart.user_rpa_access (user_id, rpa_task_id)
+       SELECT id, $2 FROM rpa_restart.app_user WHERE email = ANY($1::text[])
+       ON CONFLICT (user_id, rpa_task_id) DO NOTHING`,
+      [input.userEmails, taskId],
+    );
+    await client.query("COMMIT");
+    return { id: taskId };
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function requestRun(email: string, taskId: string) {

@@ -5,6 +5,7 @@ export type RpaTask = {
   category: string;
   status: "active" | "maintenance" | "inactive";
   lastRunAt: string | null;
+  assignedUserCount?: number;
 };
 
 export type AppUser = {

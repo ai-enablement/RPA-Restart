@@ -19,6 +19,7 @@ export function AdminRpaForm() {
       body: JSON.stringify({
         name: form.get("name"), category: form.get("category"),
         description: form.get("description"), webhookUrl: form.get("webhookUrl"),
+        userEmails: form.get("userEmails"),
       }),
     });
     if (!response.ok) {
@@ -39,6 +40,7 @@ export function AdminRpaForm() {
         <label>RPA 이름<input name="name" maxLength={120} required /></label>
         <label>분류<input name="category" maxLength={80} placeholder="예: Finance" required /></label>
         <label className="wide">설명<textarea name="description" maxLength={500} rows={3} /></label>
+        <label className="wide">사용자 이메일<textarea name="userEmails" rows={3} required placeholder={"user1@changshininc.com\nuser2@changshininc.com"} /><span className="field-help">여러 명은 줄바꿈 또는 쉼표로 구분하세요.</span></label>
         <label className="wide">Power Automate Flow URL<input name="webhookUrl" type="url" placeholder="https://..." /></label>
         {message && <p className="form-error">{message}</p>}
         <button className="save-button" disabled={saving}>{saving ? "등록 중" : "등록"}</button>
