@@ -190,7 +190,7 @@ export async function requestRun(email: string, taskId: string) {
             : {}),
         },
         body: JSON.stringify({ runId: run.rows[0].id, taskId, requestedBy: email }),
-        signal: AbortSignal.timeout(10_000),
+        signal: AbortSignal.timeout(120_000),
       });
       if (!response.ok) {
         const responseText = (await response.text().catch(() => "")).slice(0, 1000);
