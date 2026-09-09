@@ -157,10 +157,16 @@ export async function requestRun(email: string, taskId: string) {
     }>(
       `SELECT u.id AS user_id, r.flow_webhook_url AS webhook_url, r.name AS task_name
          FROM rpa_restart.app_user u
-         JOIN rpa_restart.user_rpa_access a ON a.user_id = u.id
-         JOIN rpa_restart.rpa_task r ON r.id = a.rpa_task_id
+         CROSS JOIN rpa_restart.rpa_task r
         WHERE lower(u.email) = lower($1) AND r.id = $2
-          AND u.is_active = true AND r.status = 'active'`,
+          AND u.is_active = true AND r.status = 'active'
+          AND (
+            u.role = 'admin'
+            OR EXISTS (
+              SELECT 1 FROM rpa_restart.user_rpa_access a
+               WHERE a.user_id = u.id AND a.rpa_task_id = r.id
+            )
+          )`,
       [email, taskId],
     );
     if (!allowed.rowCount) throw new Error("FORBIDDEN");
