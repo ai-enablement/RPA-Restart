@@ -19,21 +19,30 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js version
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '22.x'
 
-      - name: npm install, build, and test
+      - name: Install, build, and test
         run: |
-          npm install
-          npm run build --if-present
+          npm ci
+          npm run build
           npm run test --if-present
+
+      - name: Prepare standalone deployment package
+        run: |
+          mkdir -p release/.next
+          cp -R .next/standalone/. release/
+          cp -R .next/static release/.next/static
+          cp -R public release/public
+          rm -f release/.env release/.env.*
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: release
+          include-hidden-files: true
 
   deploy:
     runs-on: ubuntu-latest
@@ -47,6 +56,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
+          path: release
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -61,5 +71,5 @@ jobs:
         with:
           app-name: 'RPA-Restart'
           slot-name: 'Production'
-          package: .
-          
+          package: release
+          startup-command: 'node server.js'
