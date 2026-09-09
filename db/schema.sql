@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS rpa_restart.app_user (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   email text NOT NULL,
   display_name text,
+  role text NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
   is_active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT app_user_email_unique UNIQUE (email),
@@ -46,6 +47,15 @@ CREATE INDEX IF NOT EXISTS flow_run_user_requested_idx
   ON rpa_restart.flow_run (requested_by, requested_at DESC);
 CREATE INDEX IF NOT EXISTS flow_run_task_requested_idx
   ON rpa_restart.flow_run (rpa_task_id, requested_at DESC);
+
+INSERT INTO rpa_restart.app_user (email, display_name, role)
+VALUES
+  ('hyebin.park@changshininc.com', 'Hyebin Park', 'admin'),
+  ('rpa100@changshininc.com', 'RPA Admin', 'admin')
+ON CONFLICT (email) DO UPDATE
+SET role = EXCLUDED.role,
+    display_name = EXCLUDED.display_name,
+    is_active = true;
 
 -- Example setup:
 -- INSERT INTO rpa_restart.app_user (email, display_name) VALUES ('user@company.com', '홍길동');

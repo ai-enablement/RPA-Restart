@@ -6,3 +6,10 @@ export type RpaTask = {
   status: "active" | "maintenance" | "inactive";
   lastRunAt: string | null;
 };
+
+export type AppUser = {
+  id: string;
+  email: string;
+  displayName: string | null;
+  role: "user" | "admin";
+};

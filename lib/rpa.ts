@@ -1,11 +1,34 @@
 import { demoTasks } from "./demo-data";
 import { getPool } from "./db";
-import type { RpaTask } from "./types";
+import type { AppUser, RpaTask } from "./types";
 
-export async function getTasksForUser(email: string): Promise<RpaTask[]> {
+export async function getAppUser(email: string): Promise<AppUser | null> {
+  if (process.env.USE_DEMO_DATA === "true") {
+    return { id: "demo-admin", email, displayName: "Demo Admin", role: "admin" };
+  }
+
+  const result = await getPool().query<AppUser>(
+    `SELECT id, email, display_name AS "displayName", role
+       FROM rpa_restart.app_user
+      WHERE lower(email) = lower($1) AND is_active = true`,
+    [email],
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function getTasksForUser(user: AppUser): Promise<RpaTask[]> {
   if (process.env.USE_DEMO_DATA === "true") return demoTasks;
 
-  const result = await getPool().query<RpaTask>(
+  const result = user.role === "admin"
+    ? await getPool().query<RpaTask>(
+        `SELECT r.id, r.name, r.description, r.category, r.status,
+                MAX(fr.requested_at)::text AS "lastRunAt"
+           FROM rpa_restart.rpa_task r
+      LEFT JOIN rpa_restart.flow_run fr ON fr.rpa_task_id = r.id
+       GROUP BY r.id, r.name, r.description, r.category, r.status
+       ORDER BY r.name`,
+      )
+    : await getPool().query<RpaTask>(
     `SELECT r.id, r.name, r.description, r.category, r.status,
             MAX(fr.requested_at)::text AS "lastRunAt"
        FROM rpa_restart.app_user u
@@ -15,9 +38,25 @@ export async function getTasksForUser(email: string): Promise<RpaTask[]> {
       WHERE lower(u.email) = lower($1) AND u.is_active = true
    GROUP BY r.id, r.name, r.description, r.category, r.status
    ORDER BY r.name`,
-    [email],
+    [user.email],
   );
   return result.rows;
+}
+
+export async function createRpaTask(
+  user: AppUser,
+  input: { name: string; description: string; category: string; webhookUrl: string | null },
+) {
+  if (user.role !== "admin") throw new Error("FORBIDDEN");
+
+  const result = await getPool().query<{ id: string }>(
+    `INSERT INTO rpa_restart.rpa_task
+       (name, description, category, flow_webhook_url)
+     VALUES ($1, $2, $3, $4)
+     RETURNING id`,
+    [input.name, input.description, input.category, input.webhookUrl],
+  );
+  return result.rows[0];
 }
 
 export async function requestRun(email: string, taskId: string) {

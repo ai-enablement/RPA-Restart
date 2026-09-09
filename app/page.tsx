@@ -1,7 +1,8 @@
 import { BoltIcon, ClockIcon, ShieldCheckIcon, Squares2X2Icon } from "@heroicons/react/24/outline";
 import { getUserEmail } from "@/lib/auth";
-import { getTasksForUser } from "@/lib/rpa";
+import { getAppUser, getTasksForUser } from "@/lib/rpa";
 import { RunButton } from "@/components/run-button";
+import { AdminRpaForm } from "@/components/admin-rpa-form";
 
 function formatDate(value: string | null) {
   if (!value) return "실행 기록 없음";
@@ -10,7 +11,8 @@ function formatDate(value: string | null) {
 
 export default async function Home() {
   const email = await getUserEmail();
-  const tasks = email ? await getTasksForUser(email) : [];
+  const user = email ? await getAppUser(email) : null;
+  const tasks = user ? await getTasksForUser(user) : [];
   const activeCount = tasks.filter(({ status }) => status === "active").length;
 
   return (
@@ -27,7 +29,7 @@ export default async function Home() {
       <section className="workspace">
         <header className="topbar">
           <div><span className="eyebrow">AUTOMATION CONTROL DESK</span><h1>나의 자동화</h1></div>
-          <div className="identity"><span className="avatar">{email?.slice(0, 1).toUpperCase() ?? "?"}</span><div><strong>{email?.split("@")[0] ?? "로그인 필요"}</strong><span>{email ?? "Azure에서 로그인해 주세요"}</span></div></div>
+          <div className="identity"><span className="avatar">{email?.slice(0, 1).toUpperCase() ?? "?"}</span><div><strong>{user?.displayName ?? email?.split("@")[0] ?? "로그인 필요"}{user?.role === "admin" && <em>ADMIN</em>}</strong><span>{email ?? "Azure에서 로그인해 주세요"}</span></div></div>
         </header>
 
         <div className="summary-strip">
@@ -36,10 +38,14 @@ export default async function Home() {
           <p><i className="pulse" /> 시스템 연결 상태 <b>{process.env.USE_DEMO_DATA === "true" ? "미리보기" : "정상"}</b></p>
         </div>
 
+        {user?.role === "admin" && <section className="admin-panel"><div><span>ADMIN CONSOLE</span><h2>RPA 관리</h2><p>전체 자동화를 확인하고 새로운 과제를 등록할 수 있습니다.</p></div><AdminRpaForm /></section>}
+
         <section id="tasks" className="task-section">
           <div className="section-heading"><div><h2>실행할 과제를 선택하세요</h2><p>실행 버튼을 누르면 자동화 요청이 즉시 접수됩니다.</p></div><span>{tasks.length} AUTOMATIONS</span></div>
           {!email ? (
             <div className="empty"><ShieldCheckIcon /><h3>로그인이 필요합니다</h3><p>Azure App Service 인증을 완료하면 할당된 자동화가 표시됩니다.</p></div>
+          ) : !user ? (
+            <div className="empty"><ShieldCheckIcon /><h3>사용 권한이 없습니다</h3><p>관리자에게 RPA Restart 사용자 등록을 요청해 주세요.</p></div>
           ) : tasks.length === 0 ? (
             <div className="empty"><Squares2X2Icon /><h3>할당된 자동화가 없습니다</h3><p>관리자에게 RPA 과제 권한을 요청해 주세요.</p></div>
           ) : (

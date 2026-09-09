@@ -16,10 +16,14 @@
 
 ```sql
 GRANT USAGE ON SCHEMA rpa_restart TO "<앱 계정>";
-GRANT SELECT ON rpa_restart.app_user, rpa_restart.rpa_task,
-  rpa_restart.user_rpa_access TO "<앱 계정>";
+GRANT SELECT ON rpa_restart.app_user, rpa_restart.user_rpa_access TO "<앱 계정>";
+GRANT SELECT, INSERT ON rpa_restart.rpa_task TO "<앱 계정>";
 GRANT SELECT, INSERT, UPDATE ON rpa_restart.flow_run TO "<앱 계정>";
 ```
+
+기존 DB에 관리자 기능을 추가할 때는 관리자 계정으로
+`db/migrations/001_add_admin_role.sql`을 적용합니다. 이 마이그레이션은
+`hyebin.park@changshininc.com`, `rpa100@changshininc.com`을 관리자로 등록합니다.
 
 ## Azure 배포 구성
 
