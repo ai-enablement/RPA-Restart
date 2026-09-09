@@ -36,6 +36,7 @@ jobs:
           cp -R .next/static release/.next/static
           cp -R public release/public
           rm -f release/.env release/.env.*
+          npm pkg set scripts.start="node server.js" --prefix release
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -72,4 +73,3 @@ jobs:
           app-name: 'RPA-Restart'
           slot-name: 'Production'
           package: release
-          startup-command: 'node server.js'
