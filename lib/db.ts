@@ -14,6 +14,7 @@ function createPool() {
     // node-postgres treats PGSSLMODE=prefer as an SSL request without libpq-style
     // fallback. This on-premises server is non-SSL, so only opt in explicitly.
     ssl: sslMode === "require" ? { rejectUnauthorized: false } : false,
+    connectionTimeoutMillis: 10_000,
     max: 10,
     idleTimeoutMillis: 30_000,
   });
